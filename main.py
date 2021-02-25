@@ -1,5 +1,9 @@
-import sys
-import tensorflow
+from src.chatbot import chatbot
 
-print(sys.version)
-print(tensorflow.version)
+
+def main():
+    chatbot()
+
+
+if __name__ == "__main__":
+    main()

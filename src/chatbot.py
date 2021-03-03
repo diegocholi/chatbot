@@ -9,10 +9,18 @@ base_cwd = f'''{os.getcwd()}\\DOCS\\base de conhecimento'''
 
 
 def chatbot():
+    # Recuperando bases RAW
     conversations, conversations_id = import_base()
+    # Tratamento inicial das bases
     conversations = map_conversations(conversations)
     conversations_id = map_conversations_id(conversations_id)
-    questions_and_answers(conversations, conversations_id)
+    # Recuperando perguntas e respostas no modelo de aprendizagem assistida
+    questions, answers = questions_and_answers(conversations, conversations_id)
+    # Contagem de palavras
+    count_words = {}
+    count_words = remove_little_used_words(count_words, questions)
+    count_words = remove_little_used_words(count_words, answers)
+    print(count_words)
 
 
 # 1. Importação da base
@@ -60,18 +68,47 @@ def map_conversations_id(conversations_id):
 
 
 # 4. Separação das perguntas e das respostas
-# Perguntas - Respostas
-# ------------------|-----------------------
-# Olá[L194]         -       Tudo bem?[L195]
-# Tudo bem?[L195]   -       Tudo[L196]
-# Tudo[L196]        -       Eu também[L197]
+# Perguntas         |       Respostas       |
+# ------------------|-----------------------|
+# Olá[L194]         |       Tudo bem?[L195] |
+# Tudo bem?[L195]   |       Tudo[L196]      |
+# Tudo[L196]        |       Eu também[L197] |
+# ------------------|-----------------------|
 def questions_and_answers(conversations, conversations_id):
     questions = []
     answers = []
     for conversation_id in conversations_id:  # Iteramos cada grupo de conversas IDs
         for i in range(len(conversation_id) - 1):  # Ireramos esse grupo para recuperação dos seus respectivos ids
-            questions.append(conversations[conversation_id[i]])  # Pegunta é o ID corrente
-            answers.append(conversations[conversation_id[i + 1]])  # A resposta é o ID corrente + 1
+            questions.append(text_clear(conversations[conversation_id[i]]))  # Pegunta é o ID corrente
+            answers.append(text_clear(conversations[conversation_id[i + 1]]))  # A resposta é o ID corrente + 1
 
-    print(questions)
-    print(answers)
+    return questions, answers
+
+
+def text_clear(texto: str):
+    texto = texto.lower()
+    texto = re.sub(r"i'm", "i am", texto)
+    texto = re.sub(r"he's", "he is", texto)
+    texto = re.sub(r"she's", "she is", texto)
+    texto = re.sub(r"that's", "that is", texto)
+    texto = re.sub(r"what's", "what is", texto)
+    texto = re.sub(r"where's", "where is", texto)
+    texto = re.sub(r"\'ll", "will", texto)
+    texto = re.sub(r"\'ve", "heve", texto)
+    texto = re.sub(r"\'re", "are", texto)
+    texto = re.sub(r"\'d", "would", texto)
+    texto = re.sub(r"won't", "will not", texto)
+    texto = re.sub(r"can't", "cannot", texto)
+    texto = re.sub(r"[-()#/@;:<>{}~+=?.|,]", "", texto)
+    return texto
+
+
+# Criação de um dicionário que mapeia cada palavra e o número de ocrrências e remove as menos usadas
+def remove_little_used_words(count_words, sentences):
+    for sentence in sentences:  # Percorremos as frases do obj
+        for word in sentence.split():  # splitamos a frases em palavras
+            if word not in count_words:  # Se a palavra não existir no dicionário a adicionamos com o contator em 1
+                count_words[word] = 1
+            else:
+                count_words[word] += 1  # Se não incrementamos o contados
+    return count_words
